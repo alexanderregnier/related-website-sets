@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-import requests
 
 from jsonschema import validate
 from urllib.request import urlopen
@@ -20,6 +19,7 @@ from urllib.request import Request
 from publicsuffix2 import PublicSuffixList
 
 from RwsSet import RwsSet
+from security import safe_requests
 
 WELL_KNOWN = "/.well-known/related-website-set.json"
 
@@ -447,7 +447,7 @@ class RwsCheck:
         for primary in subtracted_sets:
             url = primary + WELL_KNOWN
             try:
-                r = requests.get(url, timeout=10)
+                r = safe_requests.get(url, timeout=10)
                 if r.status_code != 404:
                     self.error_list.append(
                         f"The set associated with {primary}"
@@ -519,7 +519,7 @@ class RwsCheck:
         for curr_set in check_sets.values():
             for service_site in curr_set.service_sites:
                 try:
-                    r_service = requests.get(
+                    r_service = safe_requests.get(
                         service_site, timeout=10, allow_redirects=False
                     )
                     if "X-Robots-Tag" not in r_service.headers:
@@ -564,7 +564,7 @@ class RwsCheck:
             for service_site in curr_set.service_sites:
                 ads_site = service_site + "/ads.txt"
                 try:
-                    r = requests.get(ads_site, timeout=10)
+                    r = safe_requests.get(ads_site, timeout=10)
                     if r.status_code == 200:
                         self.error_list.append(
                             f"The service site {service_site} has an ads.txt file, this violates "
@@ -598,7 +598,7 @@ class RwsCheck:
         for curr_set in check_sets.values():
             for service_site in curr_set.service_sites:
                 try:
-                    r = requests.get(service_site, timeout=10)
+                    r = safe_requests.get(service_site, timeout=10)
                     # We want the request status_code to be a 4xx or 5xx, raise
                     # an exception if it's outside that range
                     if r.status_code < 400 or r.status_code >= 600:
